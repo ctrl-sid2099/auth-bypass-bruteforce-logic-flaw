@@ -1,4 +1,4 @@
-# 🔐 PortSwigger Lab Write-up: Authentication Bypass via Logic Flaw
+# 🔐 Authentication Bypass via Logic Flaw – Tool-Assisted Exploitation (PortSwigger Lab)
 
 <img width="977" height="515" alt="1 lab" src="https://github.com/user-attachments/assets/f57c8782-0c81-498e-956c-9d48979cb895" />
 

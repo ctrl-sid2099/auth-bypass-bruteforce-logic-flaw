@@ -14,6 +14,13 @@ fail → fail → success → fail → fail → success
 
 ---
 
+## 🔬 Lab Demonstration
+
+Solved a PortSwigger lab using this tool — full writeup here:  
+[View Writeup](https://github.com/ctrl-sid2099/portswigger-labs-writeups/tree/main/Authentication/Broken%20brute-force%20protection%2C%20IP%20block)
+
+---
+
 ## 🧠 Why This Tool Exists
 
 Many applications implement protections like:

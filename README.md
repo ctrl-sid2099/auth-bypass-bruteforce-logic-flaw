@@ -1,155 +1,194 @@
-# 🔐 Authentication Bypass via Logic Flaw – Tool-Assisted Exploitation (PortSwigger Lab)
+# 🔧 Auth Wordlist Injector
 
-<img width="977" height="515" alt="1 lab" src="https://github.com/user-attachments/assets/f57c8782-0c81-498e-956c-9d48979cb895" />
+## 📌 Description
 
-## 📌 Overview
+`wordlist-injector.py` is a simple but powerful Python utility designed to **modify wordlists by injecting a specific value at fixed intervals**.
 
-This project demonstrates a logic flaw in brute-force protection where the login attempt counter resets after a successful login.
+It was built to support testing scenarios where authentication mechanisms reset after successful logins — a common **logic flaw in brute-force protections**.
 
-The goal was to exploit this behavior to brute-force a victim account (carlos) while bypassing the lockout mechanism by periodically logging into a valid account (wiener).
+This tool helps simulate controlled request patterns such as:
 
-## 🧠 Understanding the Vulnerability
+```
+fail → fail → success → fail → fail → success
+```
 
-The application implements a protection mechanism:
+---
 
-  - After 2 failed login attempts, further attempts are blocked.
-  - However, a successful login resets the attempt counter.
+## 🧠 Why This Tool Exists
 
-👉 This creates a flaw:
-If we insert a valid login after every 2 failed attempts, we can bypass the lockout entirely.
+Many applications implement protections like:
 
-## ⚙️ Step-by-Step Exploitation
+* Account lockouts after *N failed attempts*
+* Rate limiting or temporary blocking
 
-### 1️⃣ Analyze the Login Mechanism
-  
-  - Start by sending login attempts with a valid username and random passwords.
-  - Observe behavior:
+However, poorly designed systems may:
 
-      - After 2 failed attempts → next attempts get blocked.
-      - After a successful login, the counter resets.
+* **Reset the failure counter after a successful login**
+* Allow attackers to bypass protections by inserting valid credentials periodically
 
-<img width="807" height="423" alt="2 2-attemempts" src="https://github.com/user-attachments/assets/f6ca3d6d-2967-459b-a317-12cabb6a0010" />
+👉 This tool automates that behavior at the wordlist level.
 
-✅ Conclusion:
+---
 
-We must ensure every third request is a valid login to keep the attack running.
+## ⚙️ How It Works
 
-## 2️⃣ Automating Wordlist Injection
+The script:
 
-To automate this pattern, I built a custom Python tool:
+1. Reads a wordlist file (usernames or passwords)
+2. Takes a **value to inject** (valid username/password)
+3. Takes a **position (interval)**
+4. Writes a new wordlist where the value is inserted after every *N lines*
 
-📄 Checkout the [tool](https://github.com/ctrl-sid2099/auth-bypass-bruteforce-logic-flaw/blob/main/wordlist-injector).
+### 🔁 Example
 
-### 🔧 What it does:
-  
-  - Takes a wordlist file
-  - Injects a specific password after every N lines
-  - Includes:
+#### Input Wordlist:
 
-      - File validation
-      - Input validation
-      - Custom output handling
+```
+pass1
+pass2
+pass3
+pass4
+```
 
-### 💡 Usage Logic:
+#### Injection Settings:
 
-  - After every 2 password attempts → insert a known valid password
-  - Example:
+* Value: `peter`
+* Position: `2`
 
-        pass1
-        pass2
-        VALID_PASS
-        pass3
-        pass4
-        VALID_PASS
+#### Output:
 
-This ensures the login attempt counter is constantly reset.
+```
+pass1
+pass2
+peter
+pass3
+pass4
+peter
+```
 
-## 3️⃣ Structuring the Attack Pattern
+---
 
-We need to alternate between:
+## 🧩 Use Cases
 
-  - Target user → carlos
-  - Valid user → wiener
+### 🔐 1. Authentication Bypass Testing
 
-Pattern:
+* Exploit login systems where:
 
-    carlos → attempt 1
-    carlos → attempt 2
-    wiener → valid login (reset)
-    carlos → attempt 3
-    carlos → attempt 4
-    wiener → valid login (reset)
+  * Counters reset after successful login
+* Combine with tools like Burp Suite Intruder
 
-To achieve this:
-  
-  - Use this script to prepare the password injection
+---
 
-<img width="980" height="754" alt="5 user-txt" src="https://github.com/user-attachments/assets/20d6f235-d83e-49f9-93aa-61495106e0dc" />
+### ⚡ 2. Brute-Force Logic Flaw Simulation
 
-## 4️⃣ Configuring Burp Suite Intruder
+* Test applications for:
 
-### 🎯 Key Settings:
-  
-  - Positions tab:
-    - Set payload positions for:
-      - Username
-      - Password
-  - Payloads:
-    - Use generated wordlist with injected valid password
-   
-<img width="1065" height="744" alt="6 set-position" src="https://github.com/user-attachments/assets/fb3ce4aa-d969-436d-91a3-d0b757f12dc5" />
+  * Improper rate limiting
+  * Weak lockout implementations
+  * Session-based reset issues
 
-## ⚠️ Resource Pool Configuration (Important)
+---
 
-Set Resource Pool = 1 request at a time
+### 🧪 3. Security Research & Labs
 
-<img width="489" height="685" alt="7 resourcePool-1" src="https://github.com/user-attachments/assets/40b071dd-7dc2-4fb5-99db-a7a7f9015478" />
+* Especially useful for:
 
-### ❓ Why?
+  * PortSwigger Web Security Academy labs
+  * CTF challenges involving authentication flaws
+
+---
+
+### 🔄 4. Controlled Request Sequencing
+
+* Helps maintain strict request order like:
+
+```
+attempt → attempt → reset → attempt → attempt → reset
+```
+
+---
+
+## 🚀 How to Use
+
+### ▶️ Run the Script
+
+```bash
+python wordlist-injector.py
+```
+
+---
+
+### 🧾 Inputs Explained
+
+| Input                 | Description                            |
+| --------------------- | -------------------------------------- |
+| Path To Wordlist      | File containing usernames or passwords |
+| The Password/Username | Value to inject (valid credential)     |
+| Line Position         | After how many lines to inject         |
+| Output Filename       | Optional (auto-generated if blank)     |
+
+---
+
+### 💡 Example Run
+
+```bash
+Path To Wordlist: passwords.txt
+The Password/Username: peter
+At What Number of Line: 2
+Output: injected.txt
+```
+
+---
+
+## ⚠️ Important Notes
+
+### 🔹 Sequential Execution Matters
+
+This tool is most effective when used with tools configured to send **one request at a time**.
 
 If multiple requests are sent in parallel:
 
-  - The server may process them out of order
-  - The “reset” request (valid login) might not occur exactly after 2 failures
-  - This breaks the bypass logic
+* The injected “reset” request may not occur at the correct position
+* This breaks the intended bypass logic
 
-👉 By forcing sequential requests, we ensure:
+---
 
-    fail → fail → success → fail → fail → success
+### 🔹 Input Validation Features
 
-✅ This guarantees the counter resets correctly.
+* Checks if file exists
+* Ensures non-empty injection value
+* Validates numeric interval
+* Auto-generates output filename
 
-## 5️⃣ Identifying Valid Credentials
+---
 
-In Burp Intruder:
+## 📎 Example Workflow (Real Use Case)
 
-  - Filter results by:
-    - Username = wiener (to locate reset points)
-  - Then:
-    - Sort responses by HTTP status code
-  
-🔍 What to look for:
- 
-  - 302 Found → indicates successful login
+1. Generate injected wordlist using this tool
+2. Load into Burp Suite Intruder
+3. Configure username/password positions
+4. Set resource pool to **1 request**
+5. Run attack and monitor responses
+6. Identify successful login patterns
 
-<img width="1599" height="761" alt="8 success" src="https://github.com/user-attachments/assets/c6334edf-ca3e-4fdf-818e-201740de51a6" />
+---
 
-This helps identify:
+## 🎯 Key Takeaway
 
-  - Valid login responses
-  - Eventually, the correct password for carlos
+This tool highlights an important concept:
 
-## 6️⃣ Account Takeover
+> Security mechanisms can fail not because they are missing — but because they are implemented incorrectly.
 
-  - Use the discovered credentials
-  - Log in via My Account panel
+---
 
-✅ Successful authentication confirms the exploit
+## ⚠️ Disclaimer
 
-<img width="928" height="516" alt="9 end" src="https://github.com/user-attachments/assets/e8b88ecd-0ef2-4caa-942b-bf3d23a12261" />
+This tool is intended for educational purposes and authorized security testing only.  
+The author is not responsible for any misuse or damage caused by this script.  
+Always ensure you have proper permission before testing any system.
 
-## 🧩 Key Takeaways
+---
 
-  - Brute-force protections can fail due to logic flaws, not just weak thresholds
-  - Reset mechanisms can be abused if not tied properly to session/user context
-  - Sequential request control is critical in exploitation
+## 👤 Author
+
+ctrl-sid2099
